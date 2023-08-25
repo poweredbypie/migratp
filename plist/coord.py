@@ -25,11 +25,5 @@ class Coord:
             y=int(float(y))
         )
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Coord):
-            return False
-
-        return self.x == other.x and self.y == other.y
-
     def __str__(self):
         return f'{{{self.x},{self.y}}}'
