@@ -1,7 +1,6 @@
 import logging as log
 from argparse import ArgumentParser
 from pathlib import Path
-from sys import argv
 
 from plist import Plist, Pool
 
@@ -11,8 +10,9 @@ def main():
         prog='migrate',
         description='Migrate old 2.0 texture pack to 2.1'
     )
-    parser.add_argument('pack')
-    parser.add_argument('resources')
+    parser.add_argument('pack', type=str)
+    parser.add_argument('resources', type=str)
+    parser.add_argument('output', type=str)
 
     args = parser.parse_args()
     old = Path(args.pack)
@@ -28,17 +28,21 @@ def main():
 
     for name in old.glob(glob):
         print(f'Adding old plist {name}')
-        old_pool.add(Plist(name, False))
+        old_pool.add(Plist.from_plist(name))
 
     for name in new.glob(glob):
         print(f'Adding new plist {name}')
-        new_pool.add(Plist(name, True))
+        new_pool.add(Plist.from_plist(name))
 
     found: dict[str, set[str]] = {}
     missing: dict[str, set[str]] = {}
 
     for frame in old_pool.frames.values():
         plist = old_pool.owner(frame)
+        if plist is None:
+            log.fatal(f'Could not find owner for frame {frame.name}')
+            exit(1)
+
         if new_pool.find(frame.name) is not None:
             if not plist.name in found:
                 found[plist.name] = set()
@@ -57,10 +61,14 @@ def main():
     for value in found.values():
         all_found = all_found.union(value)
 
-    for frame in all_found:
-        new_pool.replace(frame, old_pool.find(frame))
+    for name in all_found:
+        frame = old_pool.find(name)
+        if frame is None:
+            log.fatal(f'Could not find frame from name {name}')
+            exit(1)
+        new_pool.replace(name, frame)
 
-    new_pool.save(Path('new'))
+    new_pool.save(Path(args.output))
 
 
 if __name__ == '__main__':

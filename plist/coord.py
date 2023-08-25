@@ -1,20 +1,31 @@
 from plist.deps import *
 
+coord_regex = re.compile('{([0-9-.]+),([0-9-.]+)}')
+
 
 @dataclass
 class Coord:
     x: int
     y: int
 
-    def __init__(self, str: str):
-        log.debug(f'Initializing coord from string {str}')
-        matched = re.match('{([0-9-.]+),([0-9-.]+)}', str)
+    @staticmethod
+    def from_str(coord: str) -> types.Union['Coord', None]:
+        log.debug(f'Initializing coord from string {coord}')
+        matched = coord_regex.match(coord)
+        if matched is None:
+            return None
+
         x = matched.group(1)
         y = matched.group(2)
-        self.x = int(float(x))
-        self.y = int(float(y))
+        return Coord(
+            x=int(float(x)),
+            y=int(float(y))
+        )
 
-    def __eq__(self, other: 'Coord'):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Coord):
+            return False
+
         return self.x == other.x and self.y == other.y
 
     def __str__(self):

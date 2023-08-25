@@ -1,13 +1,36 @@
 from plist.coord import Coord
 from plist.deps import *
 
+coord_regex = re.compile('{({.*}),({.*})}')
 
-def coord_pair(str: str) -> tuple[Coord, Coord]:
-    log.debug(f'Creating coordinate pair from string {str}')
-    matched = re.match('{({.*}),({.*})}', str)
-    first = matched.group(1)
-    second = matched.group(2)
-    return (Coord(first), Coord(second))
+
+def coord_pair(coords: str) -> tuple[Coord, Coord] | None:
+    log.debug(f'Creating coordinate pair from string {coords}')
+    matched = coord_regex.match(coords)
+    if matched is None:
+        return None
+
+    first = Coord.from_str(matched.group(1))
+    second = Coord.from_str(matched.group(2))
+    if first is None or second is None:
+        return None
+    else:
+        return (first, second)
+
+
+class NewFrameDict(types.TypedDict):
+    aliases: list[str]
+    textureRect: str
+    spriteOffset: str
+    spriteSize: str
+    spriteSourceSize: str
+    textureRotated: bool
+
+
+class OldFrameDict(types.TypedDict):
+    frame: str
+    offset: str
+    rotated: bool
 
 
 @dataclass
@@ -19,33 +42,51 @@ class Frame:
     rotated: bool
     size: Coord
 
-    def __init__(self, name: str, attrs: dict, image: Image, new: bool):
-        log.debug(f'Creating frame with name {name}')
-        self.name = name
-        self.frame = coord_pair(attrs['textureRect' if new else 'frame'])
-        self.offset = Coord(attrs['spriteOffset' if new else 'offset'])
-        self.rotated = attrs['textureRotated' if new else 'rotated']
-        self.size = self.frame[1]
+    @staticmethod
+    def from_values(name: str, image: Image, frame: str, offset: str, rotated: bool) -> types.Union['Frame', None]:
+        log.debug(f'Creating frame {name} from values')
+        frame_pair = coord_pair(frame)
+        if frame_pair is None:
+            return None
 
-        left = self.frame[0].x
-        top = self.frame[0].y
-        over = self.frame[1].x
-        down = self.frame[1].y
-        if not self.rotated:
+        offset_coord = Coord.from_str(offset)
+        if offset_coord is None:
+            return None
+
+        left = frame_pair[0].x
+        top = frame_pair[0].y
+        over = frame_pair[1].x
+        down = frame_pair[1].y
+        if not rotated:
             bottom = top + down
             right = left + over
         else:
             bottom = top + over
             right = left + down
-        self.image = image.crop((left, top, right, bottom))
+        image = image.crop((left, top, right, bottom))
+        if rotated:
+            image = image.transpose(Transpose.ROTATE_90)
 
-        if self.rotated:
-            self.image = self.image.transpose(Transpose.ROTATE_90)
+        return Frame(
+            name=name,
+            image=image,
+            frame=frame_pair,
+            offset=offset_coord,
+            rotated=rotated,
+            size=frame_pair[1]
+        )
+
+    @staticmethod
+    def from_dict(name: str, attrs: NewFrameDict | OldFrameDict, image: Image) -> types.Union['Frame', None]:
+        if 'textureRect' in attrs:
+            return Frame.from_values(name, image, attrs['textureRect'], attrs['spriteOffset'], attrs['textureRotated'])
+        else:
+            return Frame.from_values(name, image, attrs['frame'], attrs['offset'], attrs['rotated'])
 
     def dump(self, folder: Path):
         self.image.save(folder / self.name)
 
-    def as_new_dict(self) -> dict:
+    def as_new_dict(self) -> NewFrameDict:
         return {
             'aliases': [],
             'spriteOffset': str(self.offset),

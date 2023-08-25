@@ -1,5 +1,24 @@
 from plist.deps import *
-from plist.frame import Frame
+from plist.frame import Frame, NewFrameDict, OldFrameDict
+
+
+class NewMetadata(types.TypedDict):
+    format: int
+    pixelFormat: str
+    premultiplyAlpha: bool
+    realTextureFileName: str
+    size: str
+    smartupdate: str
+    textureFileName: str
+
+
+class NewPlistDict(types.TypedDict):
+    frames: dict[str, NewFrameDict]
+    metadata: NewMetadata
+
+
+class OldPlistDict(types.TypedDict):
+    frames: dict[str, OldFrameDict]
 
 
 @dataclass
@@ -8,15 +27,28 @@ class Plist:
     image: Image
     frames: dict[str, Frame]
 
-    def __init__(self, path: Path, new: bool):
-        self.image = open_image(path.with_suffix('.png'))
-        data: dict = {}
+    @staticmethod
+    def from_plist(path: Path) -> 'Plist':
+        image = open_image(path.with_suffix('.png'))
+        data: NewPlistDict | OldPlistDict
         with open(path, 'rb') as file:
             data = plist.load(file)
 
-        self.frames = {name: Frame(name, attrs, self.image, new)
-                       for (name, attrs) in data['frames'].items()}
-        self.name = path.name
+        frames: dict[str, Frame] = {}
+        for (name, attrs) in data['frames'].items():
+            frame = Frame.from_dict(
+                name, attrs, image,
+            )
+            if frame is None:
+                continue
+
+            frames[name] = frame
+
+        return Plist(
+            name=path.name,
+            image=image,
+            frames=frames
+        )
 
     # Replace a frame with a new one.
     def replace(self, name: str, new: Frame):
@@ -26,7 +58,8 @@ class Plist:
 
         if not old.size == new.size:
             log.warning(
-                f'Replacing image {old.name} ({old.size} vs. {new.size})')
+                f'Replacing image {old.name} ({old.size} vs. {new.size})'
+            )
 
         assert old.size.x >= new.size.x and old.size.y >= new.size.y
 
@@ -42,7 +75,7 @@ class Plist:
         sheet_path = path.with_suffix('.png')
         self.image.save(sheet_path)
 
-        data: dict = {
+        data: NewPlistDict = {
             'frames': {},
             'metadata': {
                 'format': 3,

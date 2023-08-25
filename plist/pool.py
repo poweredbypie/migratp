@@ -27,8 +27,8 @@ class Pool:
                 self.frames[name] = frame
                 self.owners[name] = plist
 
-    def __str__(self):
-        print([name for name in self.frames])
+    def __str__(self) -> str:
+        return str([name for name in self.frames])
 
     def dump(self):
         folder = Path(f'{self.name}_dump')
@@ -42,16 +42,10 @@ class Pool:
         owner.replace(name, new)
 
     def find(self, name: str) -> Frame | None:
-        if name in self.frames.keys():
-            return self.frames[name]
-        else:
-            return None
+        return self.frames.get(name)
 
     def owner(self, frame: Frame) -> Plist | None:
-        if frame.name in self.owners.keys():
-            return self.owners[frame.name]
-        else:
-            return None
+        return self.owners.get(frame.name)
 
     def save(self, path: Path):
         path.mkdir(exist_ok=True)
