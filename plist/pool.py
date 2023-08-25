@@ -1,6 +1,9 @@
-from plist.deps import *
-from plist.frame import Frame
-from plist.plist import Plist
+import logging as log
+from dataclasses import dataclass
+from pathlib import Path
+
+from .frame import Frame
+from .plist import Plist
 
 
 @dataclass

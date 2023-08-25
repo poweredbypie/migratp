@@ -1,8 +1,16 @@
-from plist.deps import *
-from plist.frame import Frame, NewFrameDict, OldFrameDict
+import logging as log
+import plistlib as plist
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TypedDict
+
+from PIL.Image import Image, Transpose
+from PIL.Image import open as open_image
+
+from .frame import Frame, NewFrameDict, OldFrameDict
 
 
-class NewMetadata(types.TypedDict):
+class NewMetadata(TypedDict):
     format: int
     pixelFormat: str
     premultiplyAlpha: bool
@@ -12,12 +20,12 @@ class NewMetadata(types.TypedDict):
     textureFileName: str
 
 
-class NewPlistDict(types.TypedDict):
+class NewPlistDict(TypedDict):
     frames: dict[str, NewFrameDict]
     metadata: NewMetadata
 
 
-class OldPlistDict(types.TypedDict):
+class OldPlistDict(TypedDict):
     frames: dict[str, OldFrameDict]
 
 

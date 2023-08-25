@@ -1,5 +1,12 @@
-from plist.coord import Coord
-from plist.deps import *
+import logging as log
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TypedDict, Union
+
+from PIL.Image import Image, Transpose
+
+from .coord import Coord
 
 coord_regex = re.compile('{({.*}),({.*})}')
 
@@ -18,7 +25,7 @@ def coord_pair(coords: str) -> tuple[Coord, Coord] | None:
         return (first, second)
 
 
-class NewFrameDict(types.TypedDict):
+class NewFrameDict(TypedDict):
     aliases: list[str]
     textureRect: str
     spriteOffset: str
@@ -27,7 +34,7 @@ class NewFrameDict(types.TypedDict):
     textureRotated: bool
 
 
-class OldFrameDict(types.TypedDict):
+class OldFrameDict(TypedDict):
     frame: str
     offset: str
     rotated: bool
@@ -43,7 +50,7 @@ class Frame:
     size: Coord
 
     @staticmethod
-    def from_values(name: str, image: Image, frame: str, offset: str, rotated: bool) -> types.Union['Frame', None]:
+    def from_values(name: str, image: Image, frame: str, offset: str, rotated: bool) -> Union['Frame', None]:
         log.debug(f'Creating frame {name} from values')
         frame_pair = coord_pair(frame)
         if frame_pair is None:
@@ -77,7 +84,7 @@ class Frame:
         )
 
     @staticmethod
-    def from_dict(name: str, attrs: NewFrameDict | OldFrameDict, image: Image) -> types.Union['Frame', None]:
+    def from_dict(name: str, attrs: NewFrameDict | OldFrameDict, image: Image) -> Union['Frame', None]:
         if 'textureRect' in attrs:
             return Frame.from_values(name, image, attrs['textureRect'], attrs['spriteOffset'], attrs['textureRotated'])
         else:
