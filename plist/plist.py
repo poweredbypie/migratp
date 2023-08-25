@@ -28,7 +28,7 @@ class Plist:
             log.warning(
                 f'Replacing image {old.name} ({old.size} vs. {new.size})')
 
-        assert (old.size.x >= new.size.x and old.size.y >= new.size.y)
+        assert old.size.x >= new.size.x and old.size.y >= new.size.y
 
         if old.rotated:
             image = new.image.transpose(Transpose.ROTATE_270)
