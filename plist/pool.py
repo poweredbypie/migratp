@@ -34,10 +34,11 @@ class Pool:
         return str([name for name in self.frames])
 
     def dump(self):
+        log.info(f'Saving plist pool {self.name}')
         folder = Path(f'{self.name}_dump')
         folder.mkdir(exist_ok=True)
         for frame in self.frames.values():
-            log.info(f'Saving image under name {frame.name}')
+            log.debug(f'Saving image under name {frame.name}')
             frame.dump(folder)
 
     def replace(self, name: str, new: Frame):

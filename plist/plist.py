@@ -80,6 +80,7 @@ class Plist:
 
     def save(self, path: Path):
         path = path / self.name
+        log.info(f'Saving plist {self.name} to {path}')
         sheet_path = path.with_suffix('.png')
         self.image.save(sheet_path)
 

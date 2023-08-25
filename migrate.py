@@ -13,13 +13,12 @@ def main():
     parser.add_argument('pack', type=str)
     parser.add_argument('resources', type=str)
     parser.add_argument('output', type=str)
+    parser.add_argument('-v', '--verbose', action='store_true')
 
     args = parser.parse_args()
+    log.basicConfig(level=log.DEBUG if args.verbose else log.INFO)
     old = Path(args.pack)
     new = Path(args.resources)
-
-    # Kid named camel case
-    log.basicConfig(level=log.INFO)
 
     old_pool = Pool('old', [])
     new_pool = Pool('new', [])
@@ -27,11 +26,11 @@ def main():
     glob = 'GJ_*-hd.plist'
 
     for name in old.glob(glob):
-        print(f'Adding old plist {name}')
+        log.info(f'Adding old plist {name}')
         old_pool.add(Plist.from_plist(name))
 
     for name in new.glob(glob):
-        print(f'Adding new plist {name}')
+        log.info(f'Adding new plist {name}')
         new_pool.add(Plist.from_plist(name))
 
     found: dict[str, set[str]] = {}
@@ -54,8 +53,8 @@ def main():
 
     # old_pool.dump()
 
-    print("Missing:", missing)
-    print("Found:", found)
+    log.info(f"Missing: {missing}")
+    log.info(f"Found: {found}")
 
     all_found: set[str] = set()
     for value in found.values():
