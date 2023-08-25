@@ -1,8 +1,11 @@
+# Allows referencing a class as a type in its declaration
+from __future__ import annotations
+
 import logging as log
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypedDict, Union
+from typing import TypedDict
 
 from PIL.Image import Image, Transpose
 
@@ -50,7 +53,7 @@ class Frame:
     size: Coord
 
     @staticmethod
-    def from_values(name: str, image: Image, frame: str, offset: str, rotated: bool) -> Union['Frame', None]:
+    def from_values(name: str, image: Image, frame: str, offset: str, rotated: bool) -> Frame | None:
         log.debug(f'Creating frame {name} from values')
         frame_pair = coord_pair(frame)
         if frame_pair is None:
@@ -84,7 +87,7 @@ class Frame:
         )
 
     @staticmethod
-    def from_dict(name: str, attrs: NewFrameDict | OldFrameDict, image: Image) -> Union['Frame', None]:
+    def from_dict(name: str, attrs: NewFrameDict | OldFrameDict, image: Image) -> Frame | None:
         if 'textureRect' in attrs:
             return Frame.from_values(name, image, attrs['textureRect'], attrs['spriteOffset'], attrs['textureRotated'])
         else:

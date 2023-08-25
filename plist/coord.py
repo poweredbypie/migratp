@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging as log
 import re
 from dataclasses import dataclass
-from typing import Union
 
 coord_regex = re.compile('{([0-9-.]+),([0-9-.]+)}')
 
@@ -12,7 +13,7 @@ class Coord:
     y: int
 
     @staticmethod
-    def from_str(coord: str) -> Union['Coord', None]:
+    def from_str(coord: str) -> Coord | None:
         log.debug(f'Initializing coord from string {coord}')
         matched = coord_regex.match(coord)
         if matched is None:
