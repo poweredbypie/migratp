@@ -1,13 +1,24 @@
-from plist import Pool, Plist
+import logging as log
+from argparse import ArgumentParser
 from pathlib import Path
 from sys import argv
 
-import logging as log
+from plist import Plist, Pool
+
 
 def main():
-    old = Path(argv[1])
-    new = Path(argv[2])
+    parser = ArgumentParser(
+        prog='migrate',
+        description='Migrate old 2.0 texture pack to 2.1'
+    )
+    parser.add_argument('pack')
+    parser.add_argument('resources')
 
+    args = parser.parse_args()
+    old = Path(args.pack)
+    new = Path(args.resources)
+
+    # Kid named camel case
     log.basicConfig(level=log.INFO)
 
     old_pool = Pool('old', [])
@@ -22,7 +33,7 @@ def main():
     for name in new.glob(glob):
         print(f'Adding new plist {name}')
         new_pool.add(Plist(name, True))
-    
+
     found: dict[str, set[str]] = {}
     missing: dict[str, set[str]] = {}
 
@@ -38,7 +49,7 @@ def main():
             missing[plist.name].add(frame.name)
 
     # old_pool.dump()
-    
+
     print("Missing:", missing)
     print("Found:", found)
 
@@ -50,6 +61,7 @@ def main():
         new_pool.replace(frame, old_pool.find(frame))
 
     new_pool.save(Path('new'))
+
 
 if __name__ == '__main__':
     main()

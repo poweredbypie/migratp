@@ -2,6 +2,7 @@ from plist.deps import *
 from plist.frame import Frame
 from plist.plist import Plist
 
+
 @dataclass
 class Pool:
     name: str
@@ -16,7 +17,7 @@ class Pool:
         self.plists = plists
         for plist in plists:
             self.add(plist)
-    
+
     def add(self, plist: Plist):
         self.plists.append(plist)
         for (name, frame) in plist.frames.items():
@@ -25,10 +26,10 @@ class Pool:
             else:
                 self.frames[name] = frame
                 self.owners[name] = plist
-    
+
     def __str__(self):
         print([name for name in self.frames])
-    
+
     def dump(self):
         folder = Path(f'{self.name}_dump')
         folder.mkdir(exist_ok=True)

@@ -1,5 +1,6 @@
-from plist.deps import *
 from plist.coord import Coord
+from plist.deps import *
+
 
 def coord_pair(str: str) -> tuple[Coord, Coord]:
     log.debug(f'Creating coordinate pair from string {str}')
@@ -7,6 +8,7 @@ def coord_pair(str: str) -> tuple[Coord, Coord]:
     first = matched.group(1)
     second = matched.group(2)
     return (Coord(first), Coord(second))
+
 
 @dataclass
 class Frame:
@@ -39,7 +41,7 @@ class Frame:
 
         if self.rotated:
             self.image = self.image.transpose(Transpose.ROTATE_90)
-    
+
     def dump(self, folder: Path):
         self.image.save(folder / self.name)
 
